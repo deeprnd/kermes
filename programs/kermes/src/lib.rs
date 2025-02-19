@@ -8,12 +8,13 @@ declare_id!("3aWDZ2X82E8mx6ACPmKhmvsZUwXftQtQF9u9vTjnJ6FV"); // Replace with you
 pub mod kermes {
     use super::*;
 
-    pub fn initialize_vault(ctx: Context<InitializeVault>) -> Result<()> {
+    pub fn initialize_vault(ctx: Context<InitializeVault>, vault_name: String) -> Result<()> {
         let vault = &mut ctx.accounts.vault;
         vault.total_staked = 0;
         vault.bump = ctx.bumps.vault;
         vault.owner = ctx.accounts.payer.key();
         vault.token_mint = ctx.accounts.token_mint.key();
+        vault.name = vault_name;
         Ok(())
     }
 
@@ -46,12 +47,18 @@ pub mod kermes {
 }
 
 #[derive(Accounts)]
+#[instruction(vault_name: String)]
 pub struct InitializeVault<'info> {
     #[account(
         init,
         payer = payer,
         space = Vault::LEN,
-        seeds = [b"vault", token_mint.key().as_ref()],
+        seeds = [
+            b"vault",
+            payer.key().as_ref(),
+            token_mint.key().as_ref(),
+            vault_name.as_bytes()
+        ],
         bump
     )]
     pub vault: Account<'info, Vault>,
@@ -96,6 +103,7 @@ pub struct Vault {
     pub bump: u8,
     pub owner: Pubkey,
     pub token_mint: Pubkey,
+    pub name: String,
 }
 
 impl Vault {
@@ -103,7 +111,8 @@ impl Vault {
         8 + // total_staked
         1 + // bump
         32 + // owner (Pubkey)
-        32; // token_mint (Pubkey)
+        32 + // token_mint (Pubkey)
+        4 + 32; // name (4 bytes for length + max 32 bytes for string)
 }
 
 #[event]
