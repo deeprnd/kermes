@@ -6,43 +6,14 @@ on:
   pull_request:
 
 jobs:
-  build:
-    runs-on: ubuntu-latest
-    container: rust:latest
-
-    steps:
-      - uses: actions/checkout@v3
-
-      - name: Install Solana CLI
-        run: |
-          sh -c "$(curl -sSfL https://release.anza.xyz/stable/install)"
-          echo "/github/home/.local/share/solana/install/active_release/bin" >> "$GITHUB_PATH"
-
-      - name: Install Solana BFT
-        run: |
-          solana-install init
-          solana-install update
-          solana-install install bpf-tools
-      
-      - name: Install Anchor CLI
-        run: |
-          cargo install --git https://github.com/coral-xyz/anchor avm --locked --force
-          avm install latest
-          avm use latest
-
-      - name: Cache build artifacts
-        uses: actions/cache@v3
-        with:
-          path: |
-            ~/.cargo/registry
-            ~/.cargo/git
-            target
-          key: ${{ runner.os }}-cargo-${{ hashFiles('**/Cargo.lock') }}
-
-      - name: Build
-        run: |
-          anchor build
-
-      - name: Run tests
-        run: |
-          anchor test
+    build:
+      runs-on: ubuntu-latest
+      steps:
+      - name: Checkout repository
+        uses: actions/checkout@v4
+      - name: Setup Anchor
+        uses: ./.github/actions/anchor
+      - name: Install dependencies
+        run: yarn install
+      - name: Build packages
+        run: yarn build --output-style static
