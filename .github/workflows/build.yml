@@ -16,11 +16,11 @@ jobs:
       - name: Install Solana CLI
         run: |
           sh -c "$(curl -sSfL https://release.anza.xyz/stable/install)"
-          export PATH="/github/home/.local/share/solana/install/active_release/bin:$PATH"
-          solana-install init
+          echo 'export PATH="/github/home/.local/share/solana/install/active_release/bin:$PATH"' >> $GITHUB_ENV
 
       - name: Install Anchor CLI
         run: |
+          source $GITHUB_ENV
           cargo install --git https://github.com/coral-xyz/anchor avm --locked --force
           avm install latest
           avm use latest
@@ -36,4 +36,5 @@ jobs:
 
       - name: Build
         run: |
+          source $GITHUB_ENV
           anchor build 
