@@ -19,7 +19,7 @@ jobs:
 
       - name: Install Solana BPF tools
         run: |
-          sh -c "$(curl -sSfL https://release.solana.com/stable/install)"
+          sh -c "$(curl -sSfL https://release.solana.com/v${{ env.SOLANA_VERSION }}/install)"
           export PATH="/root/.local/share/solana/install/active_release/bin:$PATH"
           solana-install init
 
