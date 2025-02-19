@@ -16,7 +16,7 @@ jobs:
       - name: Install Solana CLI
         run: |
           sh -c "$(curl -sSfL https://release.anza.xyz/stable/install)"
-          echo "$HOME/.local/share/solana/install/active_release/bin" >> "$GITHUB_PATH"
+          echo "/github/home/.local/share/solana/install/active_release/bin" >> "$GITHUB_PATH"
 
       - name: Install Solana BFT
         run: |
