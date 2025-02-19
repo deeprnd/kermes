@@ -21,143 +21,78 @@ async function requestAirdrop(user: anchor.web3.Keypair, connection: anchor.web3
 }
 
 describe("kermes", () => {
-  // Configure the client to use the local cluster.
   const provider = anchor.AnchorProvider.env();
   anchor.setProvider(provider);
-
   const program = anchor.workspace.Kermes as Program<Kermes>;
 
-  // create minter
-  const minter1 = anchor.web3.Keypair.generate();
-  const minter2 = anchor.web3.Keypair.generate();
-  // create users
-  const user1 = anchor.web3.Keypair.generate();
-  const user2 = anchor.web3.Keypair.generate();
-  // create vault curators
-  const vaultCurator1 = anchor.web3.Keypair.generate();
-  const vaultCurator2 = anchor.web3.Keypair.generate();
-
-  let mint1: anchor.web3.PublicKey;
-  let mint2: anchor.web3.PublicKey;
-  let user1Token1Account: anchor.web3.PublicKey;
-  let user1Token2Account: anchor.web3.PublicKey;
-  let user2Token1Account: anchor.web3.PublicKey;
-  let user2Token2Account: anchor.web3.PublicKey;
-  let vault1: anchor.web3.PublicKey;
-  let vault2: anchor.web3.PublicKey;
-  let vault1TokenAccount: anchor.web3.PublicKey;
-  let vault2TokenAccount: anchor.web3.PublicKey;
-
-  before(async () => {
-    // Airdrop SOL to users
+  async function createUsers() {
+    const user1 = anchor.web3.Keypair.generate();
+    const user2 = anchor.web3.Keypair.generate();
     
     await requestAirdrop(user1, provider.connection);
     await requestAirdrop(user2, provider.connection);
+
+    const minter1 = anchor.web3.Keypair.generate();
+    const minter2 = anchor.web3.Keypair.generate();
     await requestAirdrop(minter1, provider.connection);
     await requestAirdrop(minter2, provider.connection);
+
+    // Create mints
+    const mint1 = await createMint(provider.connection, minter1, minter1.publicKey, null, 9);
+    const mint2 = await createMint(provider.connection, minter2, minter2.publicKey, null, 9);
+
+    // Create token accounts
+    const user1Token1Account = await createAssociatedTokenAccount(provider.connection, user1, mint1, user1.publicKey);
+    const user1Token2Account = await createAssociatedTokenAccount(provider.connection, user1, mint2, user1.publicKey);
+    const user2Token1Account = await createAssociatedTokenAccount(provider.connection, user2, mint1, user2.publicKey);
+    const user2Token2Account = await createAssociatedTokenAccount(provider.connection, user2, mint2, user2.publicKey);
+
+    // Mint initial tokens
+    await mintTo(provider.connection, minter1, mint1, user1Token1Account, minter1, 1000000000);
+    await mintTo(provider.connection, minter1, mint1, user2Token1Account, minter1, 1500000000);
+    await mintTo(provider.connection, minter2, mint2, user1Token2Account, minter2, 2000000000);
+    await mintTo(provider.connection, minter2, mint2, user2Token2Account, minter2, 2500000000);
+
+    return {
+      users: { user1, user2 },
+      mints: { mint1, mint2 },
+      tokenAccounts: {
+        user1Token1Account,
+        user1Token2Account,
+        user2Token1Account,
+        user2Token2Account
+      }
+    };
+  }
+
+  async function createVaults(mint1: PublicKey, mint2: PublicKey) {
+    const vaultCurator1 = anchor.web3.Keypair.generate();
+    const vaultCurator2 = anchor.web3.Keypair.generate();
     await requestAirdrop(vaultCurator1, provider.connection);
     await requestAirdrop(vaultCurator2, provider.connection);
-    
-   // Create two different mints
-    mint1 = await createMint(
-      provider.connection,
-      minter1,
-      minter1.publicKey,
-      null,
-      9
-    );
-    mint2 = await createMint(
-      provider.connection,
-      minter2,
-      minter2.publicKey,
-      null,
-      9
-    );
 
-    // Create token accounts for both users
-    user1Token1Account = await createAssociatedTokenAccount(
-      provider.connection,
-      user1,
-      mint1,
-      user1.publicKey
-    );
-    user1Token2Account = await createAssociatedTokenAccount(
-      provider.connection,
-      user1,
-      mint2,
-      user1.publicKey
-    );
-    
-    user2Token1Account = await createAssociatedTokenAccount(
-      provider.connection,
-      user2,
-      mint1,
-      user2.publicKey
-    );
-    user2Token2Account = await createAssociatedTokenAccount(
-      provider.connection,
-      user2,
-      mint2,
-      user2.publicKey
-    );
+    const vault1Name = "Vault One";
+    const vault2Name = "Vault Two";
 
-    // Mint tokens to users
-    await mintTo(
-      provider.connection,
-      minter1,
-      mint1,
-      user1Token1Account,
-      minter1,
-      1000000000
-    );
-    await mintTo(
-      provider.connection,
-      minter1,
-      mint1,
-      user2Token1Account,
-      minter1,
-      1500000000
-    );
-
-    await mintTo(
-      provider.connection,
-      minter2,
-      mint2,
-      user1Token2Account,
-      minter2,
-      2000000000
-    );
-    await mintTo(
-      provider.connection,
-      minter2,
-      mint2,
-      user2Token2Account,
-      minter2,
-      2500000000
-    );
-
-    // Create vaults for each token
-    [vault1] = anchor.web3.PublicKey.findProgramAddressSync(
-      [Buffer.from("vault"), vaultCurator1.publicKey.toBuffer(), mint1.toBuffer()],
+    const [vault1] = anchor.web3.PublicKey.findProgramAddressSync(
+      [Buffer.from("vault"), vaultCurator1.publicKey.toBuffer(), mint1.toBuffer(), Buffer.from(vault1Name)],
       program.programId
     );
-    [vault2] = anchor.web3.PublicKey.findProgramAddressSync(
-      [Buffer.from("vault"), vaultCurator2.publicKey.toBuffer(), mint2.toBuffer()],
+    const [vault2] = anchor.web3.PublicKey.findProgramAddressSync(
+      [Buffer.from("vault"), vaultCurator2.publicKey.toBuffer(), mint2.toBuffer(), Buffer.from(vault2Name)],
       program.programId
     );
 
-    // Create vault token accounts
     const vault1TokenAccountKeypair = anchor.web3.Keypair.generate();
     const vault2TokenAccountKeypair = anchor.web3.Keypair.generate();
-    vault1TokenAccount = vault1TokenAccountKeypair.publicKey;
-    vault2TokenAccount = vault2TokenAccountKeypair.publicKey;
+    const vault1TokenAccount = vault1TokenAccountKeypair.publicKey;
+    const vault2TokenAccount = vault2TokenAccountKeypair.publicKey;
 
     await createAccount(provider.connection, vaultCurator1, mint1, vault1, vault1TokenAccountKeypair);
     await createAccount(provider.connection, vaultCurator2, mint2, vault2, vault2TokenAccountKeypair);
 
-    // Initialize vaults
     await program.methods
-      .initializeVault()
+      .initializeVault(vault1Name)
       .accounts({
         vault: vault1,
         payer: vaultCurator1.publicKey,
@@ -168,7 +103,7 @@ describe("kermes", () => {
       .rpc();
 
     await program.methods
-      .initializeVault()
+      .initializeVault(vault2Name)
       .accounts({
         vault: vault2,
         payer: vaultCurator2.publicKey,
@@ -177,93 +112,143 @@ describe("kermes", () => {
       })
       .signers([vaultCurator2])
       .rpc();
-  });
 
-  it("Stakes tokens", async () => {
+    return {
+      vaults: { vault1, vault2 },
+      vaultTokenAccounts: { vault1TokenAccount, vault2TokenAccount }
+    };
+  }
+
+  it("Single user stakes tokens", async () => {
+    const { users, mints, tokenAccounts } = await createUsers();
+    const { vaults, vaultTokenAccounts } = await createVaults(mints.mint1, mints.mint2);
+    
     const stakeAmount = new anchor.BN(100000000);
-
     await program.methods
       .stake(stakeAmount)
       .accounts({
-        vault,
-        user: provider.wallet.publicKey,
-        userTokenAccount,
-        vaultTokenAccount,
+        vault: vaults.vault1,
+        user: users.user1.publicKey,
+        userTokenAccount: tokenAccounts.user1Token1Account,
+        vaultTokenAccount: vaultTokenAccounts.vault1TokenAccount,
         tokenProgram: TOKEN_PROGRAM_ID,
       })
+      .signers([users.user1])
       .rpc();
 
-    const vaultAccount = await program.account.vault.fetch(vault);
+    const vaultAccount = await program.account.vault.fetch(vaults.vault1);
     assert.equal(vaultAccount.totalStaked.toString(), stakeAmount.toString());
   });
 
-  it("Multiple users stake different tokens in different vaults", async () => {
-    // User 1 stakes token1 in vault1
-    const user1Stake1Amount = new anchor.BN(100000000);
+  it("Single user stakes in multiple vaults", async () => {
+    const { users, mints, tokenAccounts } = await createUsers();
+    const { vaults, vaultTokenAccounts } = await createVaults(mints.mint1, mints.mint2);
+    
+    const stakeAmount1 = new anchor.BN(100000000);
+    const stakeAmount2 = new anchor.BN(200000000);
+
     await program.methods
-      .stake(user1Stake1Amount)
+      .stake(stakeAmount1)
       .accounts({
-        vault: vault1,
-        user: user1.publicKey,
-        userTokenAccount: user1Token1Account,
-        vaultTokenAccount: vault1TokenAccount,
+        vault: vaults.vault1,
+        user: users.user1.publicKey,
+        userTokenAccount: tokenAccounts.user1Token1Account,
+        vaultTokenAccount: vaultTokenAccounts.vault1TokenAccount,
         tokenProgram: TOKEN_PROGRAM_ID,
       })
+      .signers([users.user1])
       .rpc();
 
-    // User 1 stakes token2 in vault2
-    const user1Stake2Amount = new anchor.BN(200000000);
     await program.methods
-      .stake(user1Stake2Amount)
+      .stake(stakeAmount2)
       .accounts({
-        vault: vault2,
-        user: user1.publicKey,
-        userTokenAccount: user1Token2Account,
-        vaultTokenAccount: vault2TokenAccount,
+        vault: vaults.vault2,
+        user: users.user1.publicKey,
+        userTokenAccount: tokenAccounts.user1Token2Account,
+        vaultTokenAccount: vaultTokenAccounts.vault2TokenAccount,
         tokenProgram: TOKEN_PROGRAM_ID,
       })
+      .signers([users.user1])
       .rpc();
 
-    // User 2 stakes token1 in vault1
-    const user2Stake1Amount = new anchor.BN(150000000);
+    const vault1Account = await program.account.vault.fetch(vaults.vault1);
+    const vault2Account = await program.account.vault.fetch(vaults.vault2);
+    assert.equal(vault1Account.totalStaked.toString(), stakeAmount1.toString());
+    assert.equal(vault2Account.totalStaked.toString(), stakeAmount2.toString());
+  });
+
+  it("Multiple users stake in multiple vaults", async () => {
+    const { users, mints, tokenAccounts } = await createUsers();
+    const { vaults, vaultTokenAccounts } = await createVaults(mints.mint1, mints.mint2);
+    
+    // Define stake amounts for each user in each vault
+    const user1Vault1Amount = new anchor.BN(100000000);
+    const user1Vault2Amount = new anchor.BN(200000000);
+    const user2Vault1Amount = new anchor.BN(150000000);
+    const user2Vault2Amount = new anchor.BN(250000000);
+
+    // User 1 stakes in vault 1
     await program.methods
-      .stake(user2Stake1Amount)
+      .stake(user1Vault1Amount)
       .accounts({
-        vault: vault1,
-        user: user2.publicKey,
-        userTokenAccount: user2Token1Account,
-        vaultTokenAccount: vault1TokenAccount,
+        vault: vaults.vault1,
+        user: users.user1.publicKey,
+        userTokenAccount: tokenAccounts.user1Token1Account,
+        vaultTokenAccount: vaultTokenAccounts.vault1TokenAccount,
         tokenProgram: TOKEN_PROGRAM_ID,
       })
-      .signers([user2])
+      .signers([users.user1])
       .rpc();
 
-    // User 2 stakes token2 in vault2
-    const user2Stake2Amount = new anchor.BN(250000000);
+    // User 1 stakes in vault 2
     await program.methods
-      .stake(user2Stake2Amount)
+      .stake(user1Vault2Amount)
       .accounts({
-        vault: vault2,
-        user: user2.publicKey,
-        userTokenAccount: user2Token2Account,
-        vaultTokenAccount: vault2TokenAccount,
+        vault: vaults.vault2,
+        user: users.user1.publicKey,
+        userTokenAccount: tokenAccounts.user1Token2Account,
+        vaultTokenAccount: vaultTokenAccounts.vault2TokenAccount,
         tokenProgram: TOKEN_PROGRAM_ID,
       })
-      .signers([user2])
+      .signers([users.user1])
       .rpc();
 
-    // Verify vault1 total (token1)
-    const vault1Account = await program.account.vault.fetch(vault1);
-    assert.equal(
-      vault1Account.totalStaked.toString(),
-      user1Stake1Amount.add(user2Stake1Amount).toString()
-    );
+    // User 2 stakes in vault 1
+    await program.methods
+      .stake(user2Vault1Amount)
+      .accounts({
+        vault: vaults.vault1,
+        user: users.user2.publicKey,
+        userTokenAccount: tokenAccounts.user2Token1Account,
+        vaultTokenAccount: vaultTokenAccounts.vault1TokenAccount,
+        tokenProgram: TOKEN_PROGRAM_ID,
+      })
+      .signers([users.user2])
+      .rpc();
 
-    // Verify vault2 total (token2)
-    const vault2Account = await program.account.vault.fetch(vault2);
-    assert.equal(
-      vault2Account.totalStaked.toString(),
-      user1Stake2Amount.add(user2Stake2Amount).toString()
-    );
+    // User 2 stakes in vault 2
+    await program.methods
+      .stake(user2Vault2Amount)
+      .accounts({
+        vault: vaults.vault2,
+        user: users.user2.publicKey,
+        userTokenAccount: tokenAccounts.user2Token2Account,
+        vaultTokenAccount: vaultTokenAccounts.vault2TokenAccount,
+        tokenProgram: TOKEN_PROGRAM_ID,
+      })
+      .signers([users.user2])
+      .rpc();
+
+    // Verify total staked amounts in each vault
+    const vault1Account = await program.account.vault.fetch(vaults.vault1);
+    const vault2Account = await program.account.vault.fetch(vaults.vault2);
+
+    // Check vault1 total (user1 + user2)
+    const expectedVault1Total = user1Vault1Amount.add(user2Vault1Amount);
+    assert.equal(vault1Account.totalStaked.toString(), expectedVault1Total.toString());
+
+    // Check vault2 total (user1 + user2)
+    const expectedVault2Total = user1Vault2Amount.add(user2Vault2Amount);
+    assert.equal(vault2Account.totalStaked.toString(), expectedVault2Total.toString());
   });
 });
