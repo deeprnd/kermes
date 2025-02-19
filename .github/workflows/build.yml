@@ -4,26 +4,22 @@ on:
   push:
     branches: [ main ]
   pull_request:
-    branches: [ main ]
-
-env:
-  CARGO_TERM_COLOR: always
-  SOLANA_VERSION: "2.1.14"
-  RUST_TOOLCHAIN: stable
 
 jobs:
   build:
     runs-on: ubuntu-latest
+    container: rust:latest
+
     steps:
       - uses: actions/checkout@v3
 
-      - name: Install Solana BPF tools
+      - name: Install Solana CLI
         run: |
-          sh -c "$(curl -sSfL https://release.solana.com/v${{ env.SOLANA_VERSION }}/install)"
-          export PATH="/root/.local/share/solana/install/active_release/bin:$PATH"
+          sh -c "$(curl -sSfL https://release.anza.xyz/stable/install)"
+          export PATH="$HOME/.local/share/solana/install/active_release/bin:$PATH"
           solana-install init
 
-      - name: Install Anchor
+      - name: Install Anchor CLI
         run: |
           cargo install --git https://github.com/coral-xyz/anchor avm --locked --force
           avm install latest
@@ -40,5 +36,5 @@ jobs:
 
       - name: Build
         run: |
-          export PATH="/root/.local/share/solana/install/active_release/bin:$PATH"
+          export PATH="$HOME/.local/share/solana/install/active_release/bin:$PATH"
           anchor build 
