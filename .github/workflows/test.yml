@@ -17,3 +17,5 @@ jobs:
         run: yarn install
       - name: Build packages
         run: yarn build
+      - name: Run tests
+        run: yarn test
