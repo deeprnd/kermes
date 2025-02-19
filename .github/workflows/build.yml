@@ -17,11 +17,14 @@ jobs:
         run: |
           sh -c "$(curl -sSfL https://release.anza.xyz/stable/install)"
           echo 'export PATH="/github/home/.local/share/solana/install/active_release/bin:$PATH"' >> $GITHUB_ENV
+
+      - name: Install Solana BFT
+        run: |
           . $GITHUB_ENV
           solana-install init
           solana-install update
           solana-install install bpf-tools
-
+      
       - name: Install Anchor CLI
         run: |
           . $GITHUB_ENV
