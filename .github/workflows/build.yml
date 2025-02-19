@@ -16,7 +16,7 @@ jobs:
       - name: Install Solana CLI
         run: |
           sh -c "$(curl -sSfL https://release.anza.xyz/stable/install)"
-          export PATH="/root/.local/share/solana/install/active_release/bin:$PATH"
+          export PATH="/github/home/.local/share/solana/install/active_release/bin:$PATH"
           solana-install init
 
       - name: Install Anchor CLI
@@ -36,5 +36,4 @@ jobs:
 
       - name: Build
         run: |
-          export PATH="/root/.local/share/solana/install/active_release/bin:$PATH"
           anchor build 
