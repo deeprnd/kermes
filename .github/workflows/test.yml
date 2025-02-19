@@ -1,4 +1,4 @@
-name: Build
+name: Test
 
 on:
   push:
@@ -16,18 +16,16 @@ jobs:
       - name: Install Solana CLI
         run: |
           sh -c "$(curl -sSfL https://release.anza.xyz/stable/install)"
-          echo 'export PATH="$HOME/.local/share/solana/install/active_release/bin:$PATH"' >> $GITHUB_ENV
+          echo "/github/home/.local/share/solana/install/active_release/bin" >> $GITHUB_PATH
 
       - name: Install Solana BFT
         run: |
-          . $GITHUB_ENV
           solana-install init
           solana-install update
           solana-install install bpf-tools
       
       - name: Install Anchor CLI
         run: |
-          . $GITHUB_ENV
           cargo install --git https://github.com/coral-xyz/anchor avm --locked --force
           avm install latest
           avm use latest
@@ -43,10 +41,8 @@ jobs:
 
       - name: Build
         run: |
-          . $GITHUB_ENV
           anchor build
 
       - name: Run tests
         run: |
-          . $GITHUB_ENV
           anchor test
