@@ -16,4 +16,4 @@ jobs:
       - name: Install dependencies
         run: yarn install
       - name: Build packages
-        run: yarn build --output-style static
+        run: yarn build
