@@ -1,6 +1,6 @@
 use anchor_lang::prelude::*;
+use anchor_spl::token::{self, Mint, Token, Transfer};
 use anchor_spl::token_interface::TokenAccount;
-use anchor_spl::token::{self, Token, Transfer, Mint};
 
 declare_id!("3aWDZ2X82E8mx6ACPmKhmvsZUwXftQtQF9u9vTjnJ6FV"); // Replace with your program ID
 
@@ -55,13 +55,13 @@ pub struct InitializeVault<'info> {
         bump
     )]
     pub vault: Account<'info, Vault>,
-    
+
     #[account(mut)]
     pub payer: Signer<'info>,
 
     /// The mint of the token that will be staked in this vault
     pub token_mint: Account<'info, Mint>,
-    
+
     pub system_program: Program<'info, System>,
 }
 
@@ -72,21 +72,21 @@ pub struct Stake<'info> {
         constraint = vault.token_mint == user_token_account.mint @ ErrorCode::InvalidTokenMint
     )]
     pub vault: Account<'info, Vault>,
-    
+
     pub user: Signer<'info>,
-    
+
     #[account(
         mut,
         constraint = user_token_account.owner == user.key() @ ErrorCode::InvalidTokenAccount
     )]
     pub user_token_account: InterfaceAccount<'info, TokenAccount>,
-    
+
     #[account(
         mut,
         constraint = vault_token_account.mint == vault.token_mint @ ErrorCode::InvalidTokenMint
     )]
     pub vault_token_account: InterfaceAccount<'info, TokenAccount>,
-    
+
     pub token_program: Program<'info, Token>,
 }
 
@@ -103,7 +103,7 @@ impl Vault {
         8 + // total_staked
         1 + // bump
         32 + // owner (Pubkey)
-        32;  // token_mint (Pubkey)
+        32; // token_mint (Pubkey)
 }
 
 #[event]
