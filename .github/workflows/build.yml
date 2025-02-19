@@ -20,7 +20,7 @@ jobs:
 
       - name: Install Anchor CLI
         run: |
-          source $GITHUB_ENV
+          . $GITHUB_ENV
           cargo install --git https://github.com/coral-xyz/anchor avm --locked --force
           avm install latest
           avm use latest
@@ -36,5 +36,5 @@ jobs:
 
       - name: Build
         run: |
-          source $GITHUB_ENV
+          . $GITHUB_ENV
           anchor build 
