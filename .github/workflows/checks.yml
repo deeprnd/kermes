@@ -6,10 +6,8 @@ on:
   pull_request:
     branches: [ main ]
 jobs:
-  clippy:
+  checks:
     runs-on: ubuntu-latest
-    container: ubuntu:latest
-
     steps:
       - name: Checkout repository
         uses: actions/checkout@v4

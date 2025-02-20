@@ -21,7 +21,8 @@ runs:
         registry-url: 'https://registry.npmjs.org'
     - name: Install Yarn
       run: |
-        npm install --global yarn
+        npm install yarn
+        echo "$PWD/node_modules/.bin" >> $GITHUB_PATH
       shell: bash
     - name: Install dependencies
       run: |
