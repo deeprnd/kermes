@@ -1,22 +1,30 @@
 import * as anchor from "@coral-xyz/anchor";
 import { Program } from "@coral-xyz/anchor";
 import { Kermes } from "../target/types/kermes";
-import { 
-  TOKEN_PROGRAM_ID, 
-  createMint, 
-  createAssociatedTokenAccount, 
+import {
+  TOKEN_PROGRAM_ID,
+  createMint,
+  createAssociatedTokenAccount,
   mintTo,
   getOrCreateAssociatedTokenAccount,
-  createAccount
+  createAccount,
 } from "@solana/spl-token";
 import { assert } from "chai";
 
-async function requestAirdrop(user: anchor.web3.Keypair, connection: anchor.web3.Connection) {
-  const signature = await connection.requestAirdrop(user.publicKey, 10 * anchor.web3.LAMPORTS_PER_SOL);
+async function requestAirdrop(
+  user: anchor.web3.Keypair,
+  connection: anchor.web3.Connection
+) {
+  const signature = await connection.requestAirdrop(
+    user.publicKey,
+    10 * anchor.web3.LAMPORTS_PER_SOL
+  );
   await connection.confirmTransaction({
     signature,
     blockhash: (await connection.getLatestBlockhash()).blockhash,
-    lastValidBlockHeight: (await connection.getLatestBlockhash()).lastValidBlockHeight,
+    lastValidBlockHeight: (
+      await connection.getLatestBlockhash()
+    ).lastValidBlockHeight,
   });
 }
 
@@ -28,7 +36,7 @@ describe("kermes", () => {
   async function createUsers() {
     const user1 = anchor.web3.Keypair.generate();
     const user2 = anchor.web3.Keypair.generate();
-    
+
     await requestAirdrop(user1, provider.connection);
     await requestAirdrop(user2, provider.connection);
 
@@ -38,20 +46,80 @@ describe("kermes", () => {
     await requestAirdrop(minter2, provider.connection);
 
     // Create mints
-    const mint1 = await createMint(provider.connection, minter1, minter1.publicKey, null, 9);
-    const mint2 = await createMint(provider.connection, minter2, minter2.publicKey, null, 9);
+    const mint1 = await createMint(
+      provider.connection,
+      minter1,
+      minter1.publicKey,
+      null,
+      9
+    );
+    const mint2 = await createMint(
+      provider.connection,
+      minter2,
+      minter2.publicKey,
+      null,
+      9
+    );
 
     // Create token accounts
-    const user1Token1Account = await createAssociatedTokenAccount(provider.connection, user1, mint1, user1.publicKey);
-    const user1Token2Account = await createAssociatedTokenAccount(provider.connection, user1, mint2, user1.publicKey);
-    const user2Token1Account = await createAssociatedTokenAccount(provider.connection, user2, mint1, user2.publicKey);
-    const user2Token2Account = await createAssociatedTokenAccount(provider.connection, user2, mint2, user2.publicKey);
+    const user1Token1Account = await createAssociatedTokenAccount(
+      provider.connection,
+      user1,
+      mint1,
+      user1.publicKey
+    );
+    const user1Token2Account = await createAssociatedTokenAccount(
+      provider.connection,
+      user1,
+      mint2,
+      user1.publicKey
+    );
+    const user2Token1Account = await createAssociatedTokenAccount(
+      provider.connection,
+      user2,
+      mint1,
+      user2.publicKey
+    );
+    const user2Token2Account = await createAssociatedTokenAccount(
+      provider.connection,
+      user2,
+      mint2,
+      user2.publicKey
+    );
 
     // Mint initial tokens
-    await mintTo(provider.connection, minter1, mint1, user1Token1Account, minter1, 1000000000);
-    await mintTo(provider.connection, minter1, mint1, user2Token1Account, minter1, 1500000000);
-    await mintTo(provider.connection, minter2, mint2, user1Token2Account, minter2, 2000000000);
-    await mintTo(provider.connection, minter2, mint2, user2Token2Account, minter2, 2500000000);
+    await mintTo(
+      provider.connection,
+      minter1,
+      mint1,
+      user1Token1Account,
+      minter1,
+      1000000000
+    );
+    await mintTo(
+      provider.connection,
+      minter1,
+      mint1,
+      user2Token1Account,
+      minter1,
+      1500000000
+    );
+    await mintTo(
+      provider.connection,
+      minter2,
+      mint2,
+      user1Token2Account,
+      minter2,
+      2000000000
+    );
+    await mintTo(
+      provider.connection,
+      minter2,
+      mint2,
+      user2Token2Account,
+      minter2,
+      2500000000
+    );
 
     return {
       users: { user1, user2 },
@@ -60,8 +128,8 @@ describe("kermes", () => {
         user1Token1Account,
         user1Token2Account,
         user2Token1Account,
-        user2Token2Account
-      }
+        user2Token2Account,
+      },
     };
   }
 
@@ -75,11 +143,21 @@ describe("kermes", () => {
     const vault2Name = "Vault Two";
 
     const [vault1] = anchor.web3.PublicKey.findProgramAddressSync(
-      [Buffer.from("vault"), vaultCurator1.publicKey.toBuffer(), mint1.toBuffer(), Buffer.from(vault1Name)],
+      [
+        Buffer.from("vault"),
+        vaultCurator1.publicKey.toBuffer(),
+        mint1.toBuffer(),
+        Buffer.from(vault1Name),
+      ],
       program.programId
     );
     const [vault2] = anchor.web3.PublicKey.findProgramAddressSync(
-      [Buffer.from("vault"), vaultCurator2.publicKey.toBuffer(), mint2.toBuffer(), Buffer.from(vault2Name)],
+      [
+        Buffer.from("vault"),
+        vaultCurator2.publicKey.toBuffer(),
+        mint2.toBuffer(),
+        Buffer.from(vault2Name),
+      ],
       program.programId
     );
 
@@ -88,8 +166,20 @@ describe("kermes", () => {
     const vault1TokenAccount = vault1TokenAccountKeypair.publicKey;
     const vault2TokenAccount = vault2TokenAccountKeypair.publicKey;
 
-    await createAccount(provider.connection, vaultCurator1, mint1, vault1, vault1TokenAccountKeypair);
-    await createAccount(provider.connection, vaultCurator2, mint2, vault2, vault2TokenAccountKeypair);
+    await createAccount(
+      provider.connection,
+      vaultCurator1,
+      mint1,
+      vault1,
+      vault1TokenAccountKeypair
+    );
+    await createAccount(
+      provider.connection,
+      vaultCurator2,
+      mint2,
+      vault2,
+      vault2TokenAccountKeypair
+    );
 
     await program.methods
       .initializeVault(vault1Name)
@@ -115,14 +205,17 @@ describe("kermes", () => {
 
     return {
       vaults: { vault1, vault2 },
-      vaultTokenAccounts: { vault1TokenAccount, vault2TokenAccount }
+      vaultTokenAccounts: { vault1TokenAccount, vault2TokenAccount },
     };
   }
 
   it("Single user stakes tokens", async () => {
     const { users, mints, tokenAccounts } = await createUsers();
-    const { vaults, vaultTokenAccounts } = await createVaults(mints.mint1, mints.mint2);
-    
+    const { vaults, vaultTokenAccounts } = await createVaults(
+      mints.mint1,
+      mints.mint2
+    );
+
     const stakeAmount = new anchor.BN(100000000);
     await program.methods
       .stake(stakeAmount)
@@ -142,8 +235,11 @@ describe("kermes", () => {
 
   it("Single user stakes in multiple vaults", async () => {
     const { users, mints, tokenAccounts } = await createUsers();
-    const { vaults, vaultTokenAccounts } = await createVaults(mints.mint1, mints.mint2);
-    
+    const { vaults, vaultTokenAccounts } = await createVaults(
+      mints.mint1,
+      mints.mint2
+    );
+
     const stakeAmount1 = new anchor.BN(100000000);
     const stakeAmount2 = new anchor.BN(200000000);
 
@@ -179,8 +275,11 @@ describe("kermes", () => {
 
   it("Multiple users stake in multiple vaults", async () => {
     const { users, mints, tokenAccounts } = await createUsers();
-    const { vaults, vaultTokenAccounts } = await createVaults(mints.mint1, mints.mint2);
-    
+    const { vaults, vaultTokenAccounts } = await createVaults(
+      mints.mint1,
+      mints.mint2
+    );
+
     // Define stake amounts for each user in each vault
     const user1Vault1Amount = new anchor.BN(100000000);
     const user1Vault2Amount = new anchor.BN(200000000);
@@ -245,10 +344,16 @@ describe("kermes", () => {
 
     // Check vault1 total (user1 + user2)
     const expectedVault1Total = user1Vault1Amount.add(user2Vault1Amount);
-    assert.equal(vault1Account.totalStaked.toString(), expectedVault1Total.toString());
+    assert.equal(
+      vault1Account.totalStaked.toString(),
+      expectedVault1Total.toString()
+    );
 
     // Check vault2 total (user1 + user2)
     const expectedVault2Total = user1Vault2Amount.add(user2Vault2Amount);
-    assert.equal(vault2Account.totalStaked.toString(), expectedVault2Total.toString());
+    assert.equal(
+      vault2Account.totalStaked.toString(),
+      expectedVault2Total.toString()
+    );
   });
 });

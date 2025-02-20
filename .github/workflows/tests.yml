@@ -1,4 +1,4 @@
-name: Test
+name: Tests
 
 on:
   push:
@@ -11,11 +11,18 @@ jobs:
       steps:
       - name: Checkout repository
         uses: actions/checkout@v4
+      
       - name: Setup Anchor
         uses: ./.github/actions/anchor
+      
       - name: Install dependencies
         run: yarn install
+      
       - name: Build packages
         run: yarn build
+<<<<<<< HEAD:.github/workflows/test.yml
+=======
+
+>>>>>>> 02d8b7b (tests + ci):.github/workflows/tests.yml
       - name: Run tests
         run: yarn test
