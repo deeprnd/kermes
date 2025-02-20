@@ -48,12 +48,10 @@ runs:
           ~/.cargo/git/db/
           **/target/
         key: rust-cache-${{ inputs.rustc-version }}-${{ github.job }}-${{ hashFiles('**/Cargo.toml') }}
-    - name: Setup node
-      uses: actions/setup-node@v4
+    - name: Setup Yarn
+      uses: ./.github/actions/yarn
       with:
         node-version: ${{ inputs.node-version }}
-        cache: 'yarn'
-        registry-url: 'https://registry.npmjs.org'
     - name: Install Solana CLI
       run: |
         wget -qO- "https://release.anza.xyz/${{ inputs.solana-version }}/solana-release-x86_64-unknown-linux-gnu.tar.bz2" | tar -xvj

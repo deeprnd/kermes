@@ -1,0 +1,35 @@
+name: 'Setup Yarn'
+description: 'Sets up Yarn environment.'
+
+branding:
+  icon: node
+  color: blue
+
+inputs:
+  node-version:
+    description: 'The version of node to use.'
+    default: 'v23.8.0'
+
+runs:
+  using: 'composite'
+  steps:
+    - name: Setup Node.js
+      uses: actions/setup-node@v4
+      with:
+        node-version: ${{ inputs.node-version }}
+        cache: 'yarn'
+        registry-url: 'https://registry.npmjs.org'
+    - name: Install Yarn
+      run: |
+        npm install yarn
+        echo "$PWD/node_modules/.bin" >> $GITHUB_PATH
+      shell: bash
+    - name: Install dependencies
+      run: |
+        yarn install
+      shell: bash
+    - name: Log Installed Tools
+      run: |
+        echo "node: $(node --version)"
+        echo "yarn: $(yarn --version)"
+      shell: bash
