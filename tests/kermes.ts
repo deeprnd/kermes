@@ -9,22 +9,22 @@ import {
   getOrCreateAssociatedTokenAccount,
   createAccount,
 } from "@solana/spl-token";
-import { assert } from "chai";
+import { describe, it, afterEach, vi, beforeAll, afterAll } from "vitest";
+import assert from "assert";
 
 async function requestAirdrop(
   user: anchor.web3.Keypair,
-  connection: anchor.web3.Connection
+  connection: anchor.web3.Connection,
 ) {
   const signature = await connection.requestAirdrop(
     user.publicKey,
-    10 * anchor.web3.LAMPORTS_PER_SOL
+    10 * anchor.web3.LAMPORTS_PER_SOL,
   );
   await connection.confirmTransaction({
     signature,
     blockhash: (await connection.getLatestBlockhash()).blockhash,
-    lastValidBlockHeight: (
-      await connection.getLatestBlockhash()
-    ).lastValidBlockHeight,
+    lastValidBlockHeight: (await connection.getLatestBlockhash())
+      .lastValidBlockHeight,
   });
 }
 
@@ -51,14 +51,14 @@ describe("kermes", () => {
       minter1,
       minter1.publicKey,
       null,
-      9
+      9,
     );
     const mint2 = await createMint(
       provider.connection,
       minter2,
       minter2.publicKey,
       null,
-      9
+      9,
     );
 
     // Create token accounts
@@ -66,25 +66,25 @@ describe("kermes", () => {
       provider.connection,
       user1,
       mint1,
-      user1.publicKey
+      user1.publicKey,
     );
     const user1Token2Account = await createAssociatedTokenAccount(
       provider.connection,
       user1,
       mint2,
-      user1.publicKey
+      user1.publicKey,
     );
     const user2Token1Account = await createAssociatedTokenAccount(
       provider.connection,
       user2,
       mint1,
-      user2.publicKey
+      user2.publicKey,
     );
     const user2Token2Account = await createAssociatedTokenAccount(
       provider.connection,
       user2,
       mint2,
-      user2.publicKey
+      user2.publicKey,
     );
 
     // Mint initial tokens
@@ -94,7 +94,7 @@ describe("kermes", () => {
       mint1,
       user1Token1Account,
       minter1,
-      1000000000
+      1000000000,
     );
     await mintTo(
       provider.connection,
@@ -102,7 +102,7 @@ describe("kermes", () => {
       mint1,
       user2Token1Account,
       minter1,
-      1500000000
+      1500000000,
     );
     await mintTo(
       provider.connection,
@@ -110,7 +110,7 @@ describe("kermes", () => {
       mint2,
       user1Token2Account,
       minter2,
-      2000000000
+      2000000000,
     );
     await mintTo(
       provider.connection,
@@ -118,7 +118,7 @@ describe("kermes", () => {
       mint2,
       user2Token2Account,
       minter2,
-      2500000000
+      2500000000,
     );
 
     return {
@@ -149,7 +149,7 @@ describe("kermes", () => {
         mint1.toBuffer(),
         Buffer.from(vault1Name),
       ],
-      program.programId
+      program.programId,
     );
     const [vault2] = anchor.web3.PublicKey.findProgramAddressSync(
       [
@@ -158,7 +158,7 @@ describe("kermes", () => {
         mint2.toBuffer(),
         Buffer.from(vault2Name),
       ],
-      program.programId
+      program.programId,
     );
 
     const vault1TokenAccountKeypair = anchor.web3.Keypair.generate();
@@ -171,14 +171,14 @@ describe("kermes", () => {
       vaultCurator1,
       mint1,
       vault1,
-      vault1TokenAccountKeypair
+      vault1TokenAccountKeypair,
     );
     await createAccount(
       provider.connection,
       vaultCurator2,
       mint2,
       vault2,
-      vault2TokenAccountKeypair
+      vault2TokenAccountKeypair,
     );
 
     await program.methods
@@ -213,7 +213,7 @@ describe("kermes", () => {
     const { users, mints, tokenAccounts } = await createUsers();
     const { vaults, vaultTokenAccounts } = await createVaults(
       mints.mint1,
-      mints.mint2
+      mints.mint2,
     );
 
     const stakeAmount = new anchor.BN(100000000);
@@ -237,7 +237,7 @@ describe("kermes", () => {
     const { users, mints, tokenAccounts } = await createUsers();
     const { vaults, vaultTokenAccounts } = await createVaults(
       mints.mint1,
-      mints.mint2
+      mints.mint2,
     );
 
     const stakeAmount1 = new anchor.BN(100000000);
@@ -277,7 +277,7 @@ describe("kermes", () => {
     const { users, mints, tokenAccounts } = await createUsers();
     const { vaults, vaultTokenAccounts } = await createVaults(
       mints.mint1,
-      mints.mint2
+      mints.mint2,
     );
 
     // Define stake amounts for each user in each vault
@@ -346,14 +346,14 @@ describe("kermes", () => {
     const expectedVault1Total = user1Vault1Amount.add(user2Vault1Amount);
     assert.equal(
       vault1Account.totalStaked.toString(),
-      expectedVault1Total.toString()
+      expectedVault1Total.toString(),
     );
 
     // Check vault2 total (user1 + user2)
     const expectedVault2Total = user1Vault2Amount.add(user2Vault2Amount);
     assert.equal(
       vault2Account.totalStaked.toString(),
-      expectedVault2Total.toString()
+      expectedVault2Total.toString(),
     );
   });
 });
