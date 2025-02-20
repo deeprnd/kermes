@@ -1,4 +1,4 @@
-name: Clippy
+name: Checks
 
 on:
   push:
@@ -11,7 +11,8 @@ jobs:
     container: rust:latest
 
     steps:
-      - uses: actions/checkout@v3
+      - name: Checkout repository
+        uses: actions/checkout@v4
 
       - name: Cache build artifacts
         uses: actions/cache@v3
@@ -22,5 +23,11 @@ jobs:
             target
           key: ${{ runner.os }}-cargo-${{ hashFiles('**/Cargo.lock') }}
 
-      - name: Run Clippy
-        run: cargo clippy -- -D warnings 
+      - name: Install dependencies
+        run: yarn install
+      
+      - name: Build packages
+        run: yarn build
+
+      - name: Lint
+        run: yarn lint

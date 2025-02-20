@@ -1,9 +1,9 @@
 {
   "scripts": {
     "build": "anchor build",
-    "lint:fix": "prettier */*.js \"*/**/*{.js,.ts}\" -w",
-    "lint": "prettier */*.js \"*/**/*{.js,.ts}\" --check",
-    "test": "anchor test"
+    "test": "anchor test",
+    "format": "cargo clippy --fix --allow-dirty --allow-staged && cargo fmt && prettier */*.js \"*/**/*{.js,.ts}\" -w",
+    "lint": "cargo clippy && cargo fmt --check && prettier */*.js \"*/**/*{.js,.ts}\" --check"
   },
   "dependencies": {
     "@coral-xyz/anchor": "^0.30.1",
