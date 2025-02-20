@@ -27,7 +27,6 @@ runs:
     - name: Install dependencies
       run: |
         yarn install
-        yarn build
       shell: bash
     - name: Log Installed Tools
       run: |
