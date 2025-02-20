@@ -1,0 +1,25 @@
+name: 'Setup Node'
+description: 'Sets up an Node development environment.'
+
+branding:
+  icon: node
+  color: blue
+
+inputs:
+  node-version:
+    description: 'The version of node to use.'
+    default: 'v23.8.0'
+
+runs:
+  using: "composite"
+  steps:
+    - name: Setup node
+      uses: actions/setup-node@v4
+      with:
+        node-version: ${{ inputs.node-version }}
+        cache: 'yarn'
+        registry-url: 'https://registry.npmjs.org'
+    - name: Log Installed Tools
+      run: |
+        echo "node: $(node --version)"
+      shell: bash
