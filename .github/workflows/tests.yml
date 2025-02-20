@@ -11,14 +11,7 @@ jobs:
       steps:
       - name: Checkout repository
         uses: actions/checkout@v4
-      
       - name: Setup Anchor
         uses: ./.github/actions/anchor
-      
-      - name: Install dependencies
-        run: yarn install
-      
-      - name: Build packages
-        run: yarn build
       - name: Run tests
         run: yarn test

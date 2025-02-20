@@ -1,5 +1,5 @@
-name: 'Setup Node'
-description: 'Sets up an Node development environment.'
+name: 'Setup Yarn'
+description: 'Sets up an Yarn development environment.'
 
 branding:
   icon: node
@@ -20,10 +20,16 @@ runs:
         cache: 'yarn'
         registry-url: 'https://registry.npmjs.org'
     - name: Install Yarn
-      run: npm install --global yarn
+      run: |
+        npm install yarn
+      shell: bash
     - name: Install dependencies
-        run: yarn install
+      run: |
+        yarn install
+        yarn build
+      shell: bash
     - name: Log Installed Tools
       run: |
         echo "node: $(node --version)"
+        echo "yarn: $(yarn --version)"
       shell: bash
