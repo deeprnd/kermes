@@ -1,5 +1,5 @@
 name: 'Setup Yarn'
-description: 'Sets up an Yarn development environment.'
+description: 'Sets up Yarn environment.'
 
 branding:
   icon: node
@@ -11,9 +11,9 @@ inputs:
     default: 'v23.8.0'
 
 runs:
-  using: "composite"
+  using: 'composite'
   steps:
-    - name: Setup node
+    - name: Setup Node.js
       uses: actions/setup-node@v4
       with:
         node-version: ${{ inputs.node-version }}
@@ -21,7 +21,7 @@ runs:
         registry-url: 'https://registry.npmjs.org'
     - name: Install Yarn
       run: |
-        npm install yarn
+        npm install --global yarn
       shell: bash
     - name: Install dependencies
       run: |
