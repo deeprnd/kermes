@@ -13,12 +13,9 @@ jobs:
     steps:
       - name: Checkout repository
         uses: actions/checkout@v4
-      
       - name: Setup Node
         uses: ./.github/actions/node
-      
       - name: Build packages
         run: yarn build
-
       - name: Lint
         run: yarn lint

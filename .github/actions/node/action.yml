@@ -19,6 +19,10 @@ runs:
         node-version: ${{ inputs.node-version }}
         cache: 'yarn'
         registry-url: 'https://registry.npmjs.org'
+    - name: Install Yarn
+      run: npm install --global yarn
+    - name: Install dependencies
+        run: yarn install
     - name: Log Installed Tools
       run: |
         echo "node: $(node --version)"
