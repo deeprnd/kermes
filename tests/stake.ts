@@ -6,10 +6,9 @@ import {
   createMint,
   createAssociatedTokenAccount,
   mintTo,
-  getOrCreateAssociatedTokenAccount,
   createAccount,
 } from "@solana/spl-token";
-import { describe, it, afterEach, vi, beforeAll, afterAll } from "vitest";
+import { describe, it } from "vitest";
 import assert from "assert";
 
 async function requestAirdrop(
@@ -45,20 +44,23 @@ describe("kermes", () => {
     await requestAirdrop(minter1, provider.connection);
     await requestAirdrop(minter2, provider.connection);
 
+    const mint1Decimals = 9;
+    const mint2Decimals = 9;
+
     // Create mints
     const mint1 = await createMint(
       provider.connection,
       minter1,
       minter1.publicKey,
       null,
-      9,
+      mint1Decimals,
     );
     const mint2 = await createMint(
       provider.connection,
       minter2,
       minter2.publicKey,
       null,
-      9,
+      mint2Decimals,
     );
 
     // Create token accounts
@@ -123,7 +125,10 @@ describe("kermes", () => {
 
     return {
       users: { user1, user2 },
-      mints: { mint1, mint2 },
+      mints: {
+        mint1: { mint: mint1, decimals: mint1Decimals },
+        mint2: { mint: mint2, decimals: mint2Decimals },
+      },
       tokenAccounts: {
         user1Token1Account,
         user1Token2Account,
@@ -212,18 +217,19 @@ describe("kermes", () => {
   it("Single user stakes tokens", async () => {
     const { users, mints, tokenAccounts } = await createUsers();
     const { vaults, vaultTokenAccounts } = await createVaults(
-      mints.mint1,
-      mints.mint2,
+      mints.mint1.mint,
+      mints.mint2.mint,
     );
 
     const stakeAmount = new anchor.BN(100000000);
     await program.methods
-      .stake(stakeAmount)
+      .stake(stakeAmount, mints.mint1.decimals)
       .accounts({
         vault: vaults.vault1,
         user: users.user1.publicKey,
         userTokenAccount: tokenAccounts.user1Token1Account,
         vaultTokenAccount: vaultTokenAccounts.vault1TokenAccount,
+        tokenMint: mints.mint1.mint,
         tokenProgram: TOKEN_PROGRAM_ID,
       })
       .signers([users.user1])
@@ -236,32 +242,34 @@ describe("kermes", () => {
   it("Single user stakes in multiple vaults", async () => {
     const { users, mints, tokenAccounts } = await createUsers();
     const { vaults, vaultTokenAccounts } = await createVaults(
-      mints.mint1,
-      mints.mint2,
+      mints.mint1.mint,
+      mints.mint2.mint,
     );
 
     const stakeAmount1 = new anchor.BN(100000000);
     const stakeAmount2 = new anchor.BN(200000000);
 
     await program.methods
-      .stake(stakeAmount1)
+      .stake(stakeAmount1, mints.mint1.decimals)
       .accounts({
         vault: vaults.vault1,
         user: users.user1.publicKey,
         userTokenAccount: tokenAccounts.user1Token1Account,
         vaultTokenAccount: vaultTokenAccounts.vault1TokenAccount,
+        tokenMint: mints.mint1.mint,
         tokenProgram: TOKEN_PROGRAM_ID,
       })
       .signers([users.user1])
       .rpc();
 
     await program.methods
-      .stake(stakeAmount2)
+      .stake(stakeAmount2, mints.mint2.decimals)
       .accounts({
         vault: vaults.vault2,
         user: users.user1.publicKey,
         userTokenAccount: tokenAccounts.user1Token2Account,
         vaultTokenAccount: vaultTokenAccounts.vault2TokenAccount,
+        tokenMint: mints.mint2.mint,
         tokenProgram: TOKEN_PROGRAM_ID,
       })
       .signers([users.user1])
@@ -276,8 +284,8 @@ describe("kermes", () => {
   it("Multiple users stake in multiple vaults", async () => {
     const { users, mints, tokenAccounts } = await createUsers();
     const { vaults, vaultTokenAccounts } = await createVaults(
-      mints.mint1,
-      mints.mint2,
+      mints.mint1.mint,
+      mints.mint2.mint,
     );
 
     // Define stake amounts for each user in each vault
@@ -288,12 +296,13 @@ describe("kermes", () => {
 
     // User 1 stakes in vault 1
     await program.methods
-      .stake(user1Vault1Amount)
+      .stake(user1Vault1Amount, mints.mint1.decimals)
       .accounts({
         vault: vaults.vault1,
         user: users.user1.publicKey,
         userTokenAccount: tokenAccounts.user1Token1Account,
         vaultTokenAccount: vaultTokenAccounts.vault1TokenAccount,
+        tokenMint: mints.mint1.mint,
         tokenProgram: TOKEN_PROGRAM_ID,
       })
       .signers([users.user1])
@@ -301,12 +310,13 @@ describe("kermes", () => {
 
     // User 1 stakes in vault 2
     await program.methods
-      .stake(user1Vault2Amount)
+      .stake(user1Vault2Amount, mints.mint2.decimals)
       .accounts({
         vault: vaults.vault2,
         user: users.user1.publicKey,
         userTokenAccount: tokenAccounts.user1Token2Account,
         vaultTokenAccount: vaultTokenAccounts.vault2TokenAccount,
+        tokenMint: mints.mint2.mint,
         tokenProgram: TOKEN_PROGRAM_ID,
       })
       .signers([users.user1])
@@ -314,12 +324,13 @@ describe("kermes", () => {
 
     // User 2 stakes in vault 1
     await program.methods
-      .stake(user2Vault1Amount)
+      .stake(user2Vault1Amount, mints.mint1.decimals)
       .accounts({
         vault: vaults.vault1,
         user: users.user2.publicKey,
         userTokenAccount: tokenAccounts.user2Token1Account,
         vaultTokenAccount: vaultTokenAccounts.vault1TokenAccount,
+        tokenMint: mints.mint1.mint,
         tokenProgram: TOKEN_PROGRAM_ID,
       })
       .signers([users.user2])
@@ -327,12 +338,13 @@ describe("kermes", () => {
 
     // User 2 stakes in vault 2
     await program.methods
-      .stake(user2Vault2Amount)
+      .stake(user2Vault2Amount, mints.mint2.decimals)
       .accounts({
         vault: vaults.vault2,
         user: users.user2.publicKey,
         userTokenAccount: tokenAccounts.user2Token2Account,
         vaultTokenAccount: vaultTokenAccounts.vault2TokenAccount,
+        tokenMint: mints.mint2.mint,
         tokenProgram: TOKEN_PROGRAM_ID,
       })
       .signers([users.user2])
