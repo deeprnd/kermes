@@ -1,4 +1,3 @@
-use crate::state::spl_token_metadata::SplTokenMetadata;
 use anchor_lang::prelude::*;
 use anchor_spl::{token, token_2022};
 
@@ -13,8 +12,6 @@ pub trait SplTokenOperation {
         amount: u64,
         decimals: u8,
     ) -> Result<()>;
-
-    fn get_metadata(&self, mint: AccountInfo) -> Result<SplTokenMetadata>;
 }
 
 pub struct SplToken;
@@ -42,10 +39,6 @@ impl SplTokenOperation for SplToken {
             amount,
         )
     }
-
-    fn get_metadata(&self, mint: AccountInfo) -> Result<SplTokenMetadata> {
-        SplTokenMetadata::try_from_account(&mint)
-    }
 }
 impl SplTokenOperation for SplToken2022 {
     fn transfer<'info>(
@@ -71,9 +64,5 @@ impl SplTokenOperation for SplToken2022 {
             amount,
             decimals,
         )
-    }
-
-    fn get_metadata(&self, mint: AccountInfo) -> Result<SplTokenMetadata> {
-        SplTokenMetadata::try_from_account(&mint)
     }
 }

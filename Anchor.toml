@@ -5,7 +5,8 @@ resolution = true
 skip-lint = false
 
 [programs.localnet]
-kermes = "3aWDZ2X82E8mx6ACPmKhmvsZUwXftQtQF9u9vTjnJ6FV"
+kermes_staking = "3aWDZ2X82E8mx6ACPmKhmvsZUwXftQtQF9u9vTjnJ6FV"
+kermes_vault_share = "9QZeymvqEZukDWVKTMv5S2BoL7bHKPUpnVv3cmmHE8J1"
 
 [registry]
 url = "https://api.apr.dev"
