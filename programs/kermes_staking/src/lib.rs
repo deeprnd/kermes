@@ -11,7 +11,7 @@ pub use instructions::*;
 declare_id!("3aWDZ2X82E8mx6ACPmKhmvsZUwXftQtQF9u9vTjnJ6FV"); // Replace with your program ID
 
 #[program]
-pub mod kermes {
+pub mod kermes_staking {
     use super::*;
 
     pub fn initialize_vault(ctx: Context<InitializeVault>, vault_name: String) -> Result<()> {

@@ -1,7 +1,8 @@
 import * as anchor from "@coral-xyz/anchor";
 import { Program } from "@coral-xyz/anchor";
-import { Kermes } from "../target/types/kermes";
+import { KermesStaking } from "../../target/types/kermes_staking";
 import {
+  TOKEN_2022_PROGRAM_ID,
   TOKEN_PROGRAM_ID,
   createMint,
   createAssociatedTokenAccount,
@@ -27,10 +28,10 @@ async function requestAirdrop(
   });
 }
 
-describe("kermes", () => {
+describe("kermes-staking", () => {
   const provider = anchor.AnchorProvider.env();
   anchor.setProvider(provider);
-  const program = anchor.workspace.Kermes as Program<Kermes>;
+  const program = anchor.workspace.KermesStaking as Program<KermesStaking>;
 
   async function createUsers() {
     const user1 = anchor.web3.Keypair.generate();
@@ -41,11 +42,14 @@ describe("kermes", () => {
 
     const minter1 = anchor.web3.Keypair.generate();
     const minter2 = anchor.web3.Keypair.generate();
+    const minter3 = anchor.web3.Keypair.generate();
     await requestAirdrop(minter1, provider.connection);
     await requestAirdrop(minter2, provider.connection);
+    await requestAirdrop(minter3, provider.connection);
 
     const mint1Decimals = 9;
     const mint2Decimals = 9;
+    const mint3Decimals = 9;
 
     // Create mints
     const mint1 = await createMint(
@@ -62,6 +66,16 @@ describe("kermes", () => {
       null,
       mint2Decimals,
     );
+    const mint3 = await createMint(
+      provider.connection,
+      minter3,
+      minter3.publicKey,
+      null,
+      mint3Decimals,
+      undefined,
+      undefined,
+      TOKEN_2022_PROGRAM_ID,
+    );
 
     // Create token accounts
     const user1Token1Account = await createAssociatedTokenAccount(
@@ -76,6 +90,14 @@ describe("kermes", () => {
       mint2,
       user1.publicKey,
     );
+    const user1Token3Account = await createAssociatedTokenAccount(
+      provider.connection,
+      user1,
+      mint3,
+      user1.publicKey,
+      undefined,
+      TOKEN_2022_PROGRAM_ID,
+    );
     const user2Token1Account = await createAssociatedTokenAccount(
       provider.connection,
       user2,
@@ -87,6 +109,14 @@ describe("kermes", () => {
       user2,
       mint2,
       user2.publicKey,
+    );
+    const user2Token3Account = await createAssociatedTokenAccount(
+      provider.connection,
+      user2,
+      mint3,
+      user2.publicKey,
+      undefined,
+      TOKEN_2022_PROGRAM_ID,
     );
 
     // Mint initial tokens
@@ -128,12 +158,15 @@ describe("kermes", () => {
       mints: {
         mint1: { mint: mint1, decimals: mint1Decimals },
         mint2: { mint: mint2, decimals: mint2Decimals },
+        mint3: { mint: mint3, decimals: mint3Decimals },
       },
       tokenAccounts: {
         user1Token1Account,
         user1Token2Account,
+        user1Token3Account,
         user2Token1Account,
         user2Token2Account,
+        user2Token3Account,
       },
     };
   }
@@ -227,10 +260,12 @@ describe("kermes", () => {
       .accounts({
         vault: vaults.vault1,
         user: users.user1.publicKey,
-        userTokenAccount: tokenAccounts.user1Token1Account,
-        vaultTokenAccount: vaultTokenAccounts.vault1TokenAccount,
-        tokenMint: mints.mint1.mint,
-        tokenProgram: TOKEN_PROGRAM_ID,
+        userStakedTokenAccount: tokenAccounts.user1Token1Account,
+        vaultStakedTokenAccount: vaultTokenAccounts.vault1TokenAccount,
+        stakedTokenMint: mints.mint1.mint,
+        userVaultShareTokenAccount: tokenAccounts.user1Token3Account,
+        vaultShareTokenMint: mints.mint3.mint,
+        stakedTokenProgram: TOKEN_PROGRAM_ID,
       })
       .signers([users.user1])
       .rpc();
@@ -254,10 +289,12 @@ describe("kermes", () => {
       .accounts({
         vault: vaults.vault1,
         user: users.user1.publicKey,
-        userTokenAccount: tokenAccounts.user1Token1Account,
-        vaultTokenAccount: vaultTokenAccounts.vault1TokenAccount,
-        tokenMint: mints.mint1.mint,
-        tokenProgram: TOKEN_PROGRAM_ID,
+        userStakedTokenAccount: tokenAccounts.user1Token1Account,
+        vaultStakedTokenAccount: vaultTokenAccounts.vault1TokenAccount,
+        stakedTokenMint: mints.mint1.mint,
+        userVaultShareTokenAccount: tokenAccounts.user1Token3Account,
+        vaultShareTokenMint: mints.mint3.mint,
+        stakedTokenProgram: TOKEN_PROGRAM_ID,
       })
       .signers([users.user1])
       .rpc();
@@ -267,10 +304,12 @@ describe("kermes", () => {
       .accounts({
         vault: vaults.vault2,
         user: users.user1.publicKey,
-        userTokenAccount: tokenAccounts.user1Token2Account,
-        vaultTokenAccount: vaultTokenAccounts.vault2TokenAccount,
-        tokenMint: mints.mint2.mint,
-        tokenProgram: TOKEN_PROGRAM_ID,
+        userStakedTokenAccount: tokenAccounts.user1Token2Account,
+        vaultStakedTokenAccount: vaultTokenAccounts.vault2TokenAccount,
+        stakedTokenMint: mints.mint2.mint,
+        userVaultShareTokenAccount: tokenAccounts.user1Token3Account,
+        vaultShareTokenMint: mints.mint3.mint,
+        stakedTokenProgram: TOKEN_PROGRAM_ID,
       })
       .signers([users.user1])
       .rpc();
@@ -300,10 +339,12 @@ describe("kermes", () => {
       .accounts({
         vault: vaults.vault1,
         user: users.user1.publicKey,
-        userTokenAccount: tokenAccounts.user1Token1Account,
-        vaultTokenAccount: vaultTokenAccounts.vault1TokenAccount,
-        tokenMint: mints.mint1.mint,
-        tokenProgram: TOKEN_PROGRAM_ID,
+        userStakedTokenAccount: tokenAccounts.user1Token1Account,
+        vaultStakedTokenAccount: vaultTokenAccounts.vault1TokenAccount,
+        stakedTokenMint: mints.mint1.mint,
+        userVaultShareTokenAccount: tokenAccounts.user1Token3Account,
+        vaultShareTokenMint: mints.mint3.mint,
+        stakedTokenProgram: TOKEN_PROGRAM_ID,
       })
       .signers([users.user1])
       .rpc();
@@ -314,10 +355,12 @@ describe("kermes", () => {
       .accounts({
         vault: vaults.vault2,
         user: users.user1.publicKey,
-        userTokenAccount: tokenAccounts.user1Token2Account,
-        vaultTokenAccount: vaultTokenAccounts.vault2TokenAccount,
-        tokenMint: mints.mint2.mint,
-        tokenProgram: TOKEN_PROGRAM_ID,
+        userStakedTokenAccount: tokenAccounts.user1Token2Account,
+        vaultStakedTokenAccount: vaultTokenAccounts.vault2TokenAccount,
+        stakedTokenMint: mints.mint2.mint,
+        userVaultShareTokenAccount: tokenAccounts.user1Token3Account,
+        vaultShareTokenMint: mints.mint3.mint,
+        stakedTokenProgram: TOKEN_PROGRAM_ID,
       })
       .signers([users.user1])
       .rpc();
@@ -328,10 +371,12 @@ describe("kermes", () => {
       .accounts({
         vault: vaults.vault1,
         user: users.user2.publicKey,
-        userTokenAccount: tokenAccounts.user2Token1Account,
-        vaultTokenAccount: vaultTokenAccounts.vault1TokenAccount,
-        tokenMint: mints.mint1.mint,
-        tokenProgram: TOKEN_PROGRAM_ID,
+        userStakedTokenAccount: tokenAccounts.user2Token1Account,
+        vaultStakedTokenAccount: vaultTokenAccounts.vault1TokenAccount,
+        stakedTokenMint: mints.mint1.mint,
+        userVaultShareTokenAccount: tokenAccounts.user2Token3Account,
+        vaultShareTokenMint: mints.mint3.mint,
+        stakedTokenProgram: TOKEN_PROGRAM_ID,
       })
       .signers([users.user2])
       .rpc();
@@ -342,10 +387,12 @@ describe("kermes", () => {
       .accounts({
         vault: vaults.vault2,
         user: users.user2.publicKey,
-        userTokenAccount: tokenAccounts.user2Token2Account,
-        vaultTokenAccount: vaultTokenAccounts.vault2TokenAccount,
-        tokenMint: mints.mint2.mint,
-        tokenProgram: TOKEN_PROGRAM_ID,
+        userStakedTokenAccount: tokenAccounts.user2Token2Account,
+        vaultStakedTokenAccount: vaultTokenAccounts.vault2TokenAccount,
+        stakedTokenMint: mints.mint2.mint,
+        userVaultShareTokenAccount: tokenAccounts.user2Token3Account,
+        vaultShareTokenMint: mints.mint3.mint,
+        stakedTokenProgram: TOKEN_PROGRAM_ID,
       })
       .signers([users.user2])
       .rpc();
