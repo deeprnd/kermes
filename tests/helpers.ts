@@ -7,6 +7,7 @@ import {
   createAccount,
   mintTo,
 } from "@solana/spl-token";
+import { KermesStaking } from "../target/types/kermes_staking";
 
 // Helper function to request an airdrop
 export async function requestAirdrop(
@@ -107,7 +108,7 @@ export async function mintTokensToUser(
 // Create a single vault
 export async function createVault(
   provider: anchor.AnchorProvider,
-  program: anchor.Program,
+  program: anchor.Program<KermesStaking>,
   vaultCurator: anchor.web3.Keypair,
   mint: anchor.web3.PublicKey,
   vaultName: string,
@@ -148,4 +149,24 @@ export async function createVault(
     .rpc();
 
   return { vault, vaultTokenAccount };
+}
+
+// Helper function to calculate the bump
+export async function getVaultAddress(
+  programId: anchor.web3.PublicKey,
+  payer: anchor.web3.PublicKey,
+  tokenMint: anchor.web3.PublicKey,
+  vaultName: string,
+) {
+  const [vaultAddress, bump] =
+    await anchor.web3.PublicKey.findProgramAddressSync(
+      [
+        Buffer.from("vault"),
+        payer.toBuffer(),
+        tokenMint.toBuffer(),
+        Buffer.from(vaultName),
+      ],
+      programId,
+    );
+  return { vaultAddress, bump };
 }
