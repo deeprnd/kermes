@@ -12,7 +12,7 @@ import {
   mintTokensToUser,
 } from "../helpers";
 
-describe("kermes-staking", () => {
+describe("kermes-staking-stake", () => {
   const provider = anchor.AnchorProvider.env();
   anchor.setProvider(provider);
   const program = anchor.workspace.KermesStaking as Program<KermesStaking>;
@@ -23,6 +23,8 @@ describe("kermes-staking", () => {
   const generateRandomTestCase = (
     isToken1Token2022: boolean,
     isToken2Token2022: boolean,
+    decimals1: number,
+    decimals2: number,
     user1MaxToken1Amount: number,
     user1MaxToken2Amount: number,
     user2MaxToken1Amount: number,
@@ -42,6 +44,8 @@ describe("kermes-staking", () => {
     return {
       isToken1Token2022,
       isToken2Token2022,
+      decimals1,
+      decimals2,
       user1Token1Amount,
       user1Token1StakeAmount,
       user1Token2Amount,
@@ -58,6 +62,8 @@ describe("kermes-staking", () => {
     generateRandomTestCase(
       false,
       false,
+      9,
+      9,
       1000000000,
       1000000000,
       1000000000,
@@ -67,6 +73,8 @@ describe("kermes-staking", () => {
     generateRandomTestCase(
       false,
       true,
+      9,
+      9,
       1000000000,
       1000000000,
       1000000000,
@@ -76,6 +84,8 @@ describe("kermes-staking", () => {
     generateRandomTestCase(
       true,
       true,
+      9,
+      9,
       1000000000,
       1000000000,
       1000000000,
@@ -85,6 +95,8 @@ describe("kermes-staking", () => {
     generateRandomTestCase(
       false,
       false,
+      9,
+      9,
       0,
       1000000000,
       1000000000,
@@ -94,6 +106,8 @@ describe("kermes-staking", () => {
     generateRandomTestCase(
       false,
       true,
+      9,
+      9,
       0,
       1000000000,
       1000000000,
@@ -103,6 +117,8 @@ describe("kermes-staking", () => {
     generateRandomTestCase(
       true,
       true,
+      9,
+      9,
       0,
       1000000000,
       1000000000,
@@ -112,6 +128,8 @@ describe("kermes-staking", () => {
     generateRandomTestCase(
       false,
       false,
+      9,
+      9,
       0,
       0,
       1000000000,
@@ -121,6 +139,8 @@ describe("kermes-staking", () => {
     generateRandomTestCase(
       false,
       true,
+      9,
+      9,
       0,
       0,
       1000000000,
@@ -130,6 +150,8 @@ describe("kermes-staking", () => {
     generateRandomTestCase(
       true,
       true,
+      9,
+      9,
       0,
       0,
       1000000000,
@@ -139,10 +161,12 @@ describe("kermes-staking", () => {
   ];
 
   it.each(testCases)(
-    "Multiple users stake in multiple vaults with $description",
+    "Staking with $description",
     async ({
       isToken1Token2022,
       isToken2Token2022,
+      decimals1,
+      decimals2,
       user1Token1Amount,
       user1Token1StakeAmount,
       user1Token2Amount,
@@ -159,8 +183,18 @@ describe("kermes-staking", () => {
       // Create two mints (SPL and SPL2022)
       const minter1 = await createUser(provider);
       const minter2 = await createUser(provider);
-      const mint1 = await createMint(provider, minter1, 9, isToken1Token2022);
-      const mint2 = await createMint(provider, minter2, 9, isToken2Token2022);
+      const mint1 = await createMint(
+        provider,
+        minter1,
+        decimals1,
+        isToken1Token2022,
+      );
+      const mint2 = await createMint(
+        provider,
+        minter2,
+        decimals2,
+        isToken2Token2022,
+      );
 
       // Create token accounts for the users
       const user1TokenAccount1 = await createTokenAccount(
