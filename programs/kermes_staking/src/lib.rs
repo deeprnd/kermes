@@ -22,3 +22,6 @@ pub mod kermes_staking {
         instructions::stake(ctx, amount, decimals)
     }
 }
+
+// Re-export events to make them available to clients
+pub use events::*;

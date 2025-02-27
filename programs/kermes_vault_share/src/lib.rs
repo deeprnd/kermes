@@ -20,3 +20,6 @@ pub mod kermes_vault_share {
         instructions::mint(ctx, amount)
     }
 }
+
+// Re-export events to make them available to clients
+pub use events::*;

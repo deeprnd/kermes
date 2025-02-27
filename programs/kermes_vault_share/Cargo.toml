@@ -10,6 +10,7 @@ name = "kermes_vault_share"
 
 [features]
 default = []
+test = []
 cpi = ["no-entrypoint"]
 no-entrypoint = []
 no-idl = []
@@ -23,3 +24,4 @@ idl-build = [
 anchor-lang = "0.30.1"
 anchor-spl = "0.30.1"
 anchor-derive-accounts = "0.30.1"
+kermes_staking = { path = "../kermes_staking", features = ["cpi"] }

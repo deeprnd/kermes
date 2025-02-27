@@ -1,7 +1,7 @@
 import * as anchor from "@coral-xyz/anchor";
 import { Program } from "@coral-xyz/anchor";
 import { TOKEN_2022_PROGRAM_ID, TOKEN_PROGRAM_ID } from "@solana/spl-token";
-import { KermesStaking } from "../../target/types/kermes_staking";
+import { KermesStaking } from "../../../target/types/kermes_staking";
 import { describe, it } from "vitest";
 import assert from "assert";
 import {
@@ -10,7 +10,7 @@ import {
   createTokenAccount,
   createVault,
   mintTokensToUser,
-} from "../helpers";
+} from "../../helpers";
 
 describe("kermes-staking-stake", () => {
   const provider = anchor.AnchorProvider.env();
