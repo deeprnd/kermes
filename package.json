@@ -1,7 +1,7 @@
 {
   "scripts": {
     "build": "anchor build",
-    "test": "anchor test",
+    "test": "anchor test -- --features test",
     "format": "cargo clippy --fix --allow-dirty --allow-staged && cargo fmt && prettier */*.js \"*/**/*{.js,.ts}\" -w",
     "lint": "cargo clippy && cargo fmt --check && prettier */*.js \"*/**/*{.js,.ts}\" --check"
   },

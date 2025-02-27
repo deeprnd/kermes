@@ -1,6 +1,6 @@
 import * as anchor from "@coral-xyz/anchor";
 import { Program } from "@coral-xyz/anchor";
-import { KermesStaking } from "../../target/types/kermes_staking";
+import { KermesStaking } from "../../../target/types/kermes_staking";
 import { describe, it } from "vitest";
 import assert from "assert";
 import {
@@ -8,7 +8,7 @@ import {
   createMint,
   createVault,
   getVaultAddress,
-} from "../helpers";
+} from "../../helpers";
 
 describe("kermes-staking-initialize-vault", () => {
   const provider = anchor.AnchorProvider.env();
