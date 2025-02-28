@@ -5,7 +5,12 @@ import { KermesStaking } from "../../../target/types/kermes_staking";
 import { KermesVaultShare } from "../../../target/types/kermes_vault_share";
 import { Keypair, PublicKey } from "@solana/web3.js";
 import { getAccount, getMint, TOKEN_2022_PROGRAM_ID } from "@solana/spl-token";
-import { createUser, createMint, createTokenAccount } from "../../helpers";
+import {
+  createUser,
+  createMint,
+  createTokenAccount,
+  getTransactionEvents,
+} from "../../helpers";
 
 describe("kermes_vault_share mint test", () => {
   // Configure the client to use the local cluster
@@ -53,10 +58,19 @@ describe("kermes_vault_share mint test", () => {
 
   it("mints vault share tokens correctly and emits event", async () => {
     // Define the amount to mint
-    const amountToMint = new anchor.BN(1000000000);
+    const amountToMint = new anchor.BN(1_000_000_000);
+
+    // Get initial user balance
+    const initialUserAccount = await getAccount(
+      provider.connection,
+      userTokenAccount,
+      undefined,
+      TOKEN_2022_PROGRAM_ID,
+    );
+    const initialBalance = BigInt(initialUserAccount.amount.toString());
 
     // Execute the mint instruction
-    await vaultShareProgram.methods
+    const txSig = await vaultShareProgram.methods
       .mint(amountToMint)
       .accounts({
         mint: vaultShareMint,
@@ -67,28 +81,35 @@ describe("kermes_vault_share mint test", () => {
       .signers([admin])
       .rpc();
 
-    // Check if the tokens were minted correctly
-    const userAccount = await getAccount(
+    // Ensure the event was emitted
+    const events = await getTransactionEvents(vaultShareProgram, txSig);
+    expect(events.length).toBe(1);
+    const event = events[0];
+    expect(event.name).toBe("mintEvent");
+    expect(event.data.recipient.toString()).toBe(user.publicKey.toString());
+    expect(event.data.mint.toString()).toBe(vaultShareMint.toString());
+    expect(new anchor.BN(event.data.amount).eq(amountToMint)).toBe(true);
+    expect(event.data.timestamp).toBeDefined();
+
+    // Verify user balance increased
+    const updatedUserAccount = await getAccount(
       provider.connection,
       userTokenAccount,
       undefined,
       TOKEN_2022_PROGRAM_ID,
     );
+    const newBalance = BigInt(updatedUserAccount.amount.toString());
+    expect(newBalance).toBe(initialBalance + BigInt(amountToMint.toString()));
 
-    // Verify user balance increased
-    expect(userAccount.amount).toBe(
-      initialBalance + BigInt(amountToMint.toString()),
-    );
-
-    // Check the total supply of the mint
+    // Verify total supply matches the minted amount
     const mintInfo = await getMint(
       provider.connection,
       vaultShareMint,
       undefined,
       TOKEN_2022_PROGRAM_ID,
     );
-
-    // Verify total supply matches the minted amount
-    expect(mintInfo.supply).toBe(BigInt(amountToMint.toString()));
+    expect(BigInt(mintInfo.supply.toString())).toBe(
+      BigInt(amountToMint.toString()),
+    );
   });
 });

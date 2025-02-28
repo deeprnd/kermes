@@ -6,6 +6,7 @@ use anchor_spl::{
     token_interface::{Mint as TokenMint, TokenAccount},
 };
 
+#[event_cpi]
 #[derive(Accounts)]
 pub struct Mint<'info> {
     #[account(mut)]
@@ -38,7 +39,7 @@ pub fn mint(ctx: Context<Mint>, amount: u64) -> Result<()> {
         amount,
     )?;
 
-    emit!(MintEvent {
+    emit_cpi!(MintEvent {
         recipient: ctx.accounts.user_token_account.owner,
         mint: ctx.accounts.mint.key(),
         amount,

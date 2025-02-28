@@ -170,3 +170,115 @@ export async function getVaultAddress(
     );
   return { vaultAddress, bump };
 }
+
+// Confirms a transaction and fetches its details from the blockchain
+export async function confirmAndFetchTransaction(
+  program: anchor.Program,
+  transactionSignature: string,
+): Promise<anchor.web3.VersionedTransactionResponse | null> {
+  try {
+    // Get the latest blockhash for confirmation
+    const latestBlockhash =
+      await program.provider.connection.getLatestBlockhash();
+
+    // Confirm the transaction
+    await program.provider.connection.confirmTransaction(
+      {
+        signature: transactionSignature,
+        blockhash: latestBlockhash.blockhash,
+        lastValidBlockHeight: latestBlockhash.lastValidBlockHeight,
+      },
+      "confirmed",
+    );
+
+    // Fetch and return the transaction details
+    return await program.provider.connection.getTransaction(
+      transactionSignature,
+      {
+        commitment: "confirmed",
+        maxSupportedTransactionVersion: 0,
+      },
+    );
+  } catch (error) {
+    return null;
+  }
+}
+
+// Retrieves all log messages from a given transaction
+export async function getTransactionLogs(
+  program: anchor.Program,
+  transactionSignature: string,
+): Promise<string[]> {
+  const txData = await confirmAndFetchTransaction(
+    program,
+    transactionSignature,
+  );
+  return txData?.meta?.logMessages ?? [];
+}
+
+// Prints all log messages from a given transaction
+export async function printTransactionLogs(
+  program: anchor.Program,
+  transactionSignature: string,
+): Promise<void> {
+  console.log(`Log messages for tx signature: ${transactionSignature}`);
+  const logMessages = await getTransactionLogs(program, transactionSignature);
+  if (logMessages && logMessages.length > 0) {
+    logMessages.forEach((logMessage, index) => {
+      console.log(`Log Message ${index + 1}: ${logMessage}`);
+    });
+  } else {
+    console.log("No log messages found");
+  }
+}
+
+// Extracts and decodes events from a given transaction
+export async function getTransactionEvents(
+  program: anchor.Program,
+  transactionSignature: string,
+): Promise<any[]> {
+  try {
+    const txData = await confirmAndFetchTransaction(
+      program,
+      transactionSignature,
+    );
+    const innerInstructions = txData?.meta?.innerInstructions ?? [];
+
+    const events: any[] = [];
+
+    innerInstructions.forEach((innerIx) => {
+      innerIx.instructions.forEach((instruction) => {
+        try {
+          const rawData = anchor.utils.bytes.bs58.decode(instruction.data);
+          const base64Data = anchor.utils.bytes.base64.encode(
+            rawData.subarray(8),
+          ); // Adjust if needed
+          const event = program.coder.events.decode(base64Data);
+          if (event) events.push(event);
+        } catch (error) {
+          console.warn("Error decoding event data:", error);
+        }
+      });
+    });
+    return events;
+  } catch (error) {
+    console.error("Error fetching transaction events:", error);
+    return [];
+  }
+}
+
+// Prints all events from a given transaction
+export async function printTransactionEvents(
+  program: anchor.Program,
+  transactionSignature: string,
+): Promise<void> {
+  console.log(`Events for tx signature: ${transactionSignature}`);
+  const events = await getTransactionEvents(program, transactionSignature);
+  if (events && events.length > 0) {
+    events.forEach((event, index) => {
+      console.log(`Event ${index + 1}: ${JSON.stringify(event)}`);
+    });
+  } else {
+    console.log("No log messages found");
+  }
+}
