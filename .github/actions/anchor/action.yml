@@ -13,9 +13,10 @@ inputs:
   solana-key:
     description: 'The private key to use for the solana sdk.'
     required: false
-  rustc-version:
-    description: 'The version of rustc to use.'
-    default: 'v1.84.0'
+  rust-toolchain-version:
+    description: 'The version of the Rust toolchain to use.'
+    required: false
+    default: 'nightly-2024-11-19'  # Default value, can be overridden
   node-version:
     description: 'The version of node to use.'
     default: 'v23.8.0'
@@ -31,10 +32,9 @@ runs:
   steps:
     - name: Setup rustc
       run: |
-        rust_version=${{ inputs.rustc-version }}
-        rustup toolchain install ${rust_version#v}
-        rustup default ${rust_version#v}
-        rustup component add rustfmt clippy
+        rustup toolchain install ${{ inputs.rust-toolchain-version }}
+        rustup default ${{ inputs.rust-toolchain-version }}
+        rustup component add rustfmt clippy --toolchain ${{ inputs.rust-toolchain-version }}
         echo "RUST_LOG=" >> $GITHUB_ENV
       shell: bash
     - name: Cache rust
@@ -47,7 +47,7 @@ runs:
           ~/.cargo/registry/cache/
           ~/.cargo/git/db/
           **/target/
-        key: rust-cache-${{ inputs.rustc-version }}-${{ github.job }}-${{ hashFiles('**/Cargo.toml') }}
+        key: rust-cache-${{ inputs.rust-toolchain-version }}-${{ github.job }}-${{ hashFiles('**/Cargo.toml') }}
     - name: Setup Yarn
       uses: ./.github/actions/yarn
       with:
