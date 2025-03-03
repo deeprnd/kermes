@@ -10,10 +10,11 @@
     "@solana/spl-token": "^0.4.12"
   },
   "devDependencies": {
-    "@types/node": "^22.13.4",
     "@types/bn.js": "^5.1.0",
-    "vitest": "^3.0.6",
-    "prettier": "^3.5.1",
-    "typescript": "^5.4.5"
+    "@types/node": "^22.13.8",
+    "@vitest/coverage-v8": "^3.0.7",
+    "prettier": "^3.5.3",
+    "typescript": "^5.8.2",
+    "vitest": "^3.0.7"
   }
 }
